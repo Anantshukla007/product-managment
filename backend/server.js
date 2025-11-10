@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 
 
 dotenv.config();
+console.log('Loaded MONGO URI:', process.env.MONGODB_URI);
 
 
 const categoryRoutes = require('./routes/categoryRoutes');
