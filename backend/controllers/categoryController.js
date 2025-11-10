@@ -1,6 +1,7 @@
 const Category = require('../models/Category');
+const SubCategory = require('../models/SubCategory');
+const Product = require('../models/Product');
 
-// Create Category
 exports.createCategory = async (req, res) => {
   try {
     const category = new Category(req.body);
@@ -85,15 +86,31 @@ exports.updateCategory = async (req, res) => {
 };
 
 // Delete Category
+// Enhanced: Check if category is being used before deletion
 exports.deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findById(req.params.id);
+    
     if (!category) {
       return res.status(404).json({
         success: false,
         message: 'Category not found'
       });
     }
+
+    // Optional: Check if category has associated subcategories or products
+    const subCategoryCount = await SubCategory.countDocuments({ category: req.params.id });
+    const productCount = await Product.countDocuments({ category: req.params.id });
+    
+    if (subCategoryCount > 0 || productCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete category. It has ${subCategoryCount} subcategories and ${productCount} products associated with it.`
+      });
+    }
+
+    await Category.findByIdAndDelete(req.params.id);
+    
     res.status(200).json({
       success: true,
       message: 'Category deleted successfully'
